@@ -1,0 +1,19 @@
+services:
+  - type: web
+    name: zoti-document-teacher
+    env: python
+    buildCommand: pip install -r requirements.txt
+    startCommand: streamlit run src/app.py
+    envVars:
+      - key: PYTHON_VERSION
+        value: 3.9
+      - key: AWS_ACCESS_KEY_ID
+        sync: false
+      - key: AWS_SECRET_ACCESS_KEY
+        sync: false
+      - key: AWS_REGION
+        sync: false
+      - key: GOOGLE_API_KEY
+        sync: false
+      - key: TAVILY_API_KEY
+        sync: false
