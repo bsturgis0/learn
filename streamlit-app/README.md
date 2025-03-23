@@ -23,6 +23,7 @@ streamlit-app
 ├── .env                         # Environment variables
 ├── requirements.txt             # Project dependencies
 └── README.md                    # Project documentation
+|__vercel.json
 ```
 
 ## Setup Instructions
