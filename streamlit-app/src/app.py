@@ -201,7 +201,7 @@ with st.sidebar:
         st.session_state.voice_config['selected_voice'] = selected_voice
 
 # Main content area - Chat interface
-st.title("Zoti Document Teacher")
+st.title("Zoti T.A")
 st.markdown("Your AI teaching assistant for understanding documents")
 
 # Initialize messages container
