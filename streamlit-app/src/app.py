@@ -100,7 +100,7 @@ async def call_model(state):
     try:
         # Get the model from the cached workflow
         model = ChatGoogleGenerativeAI(
-            model="gemini-1.5-pro-latest",
+            model="gemini-2.0-flash",
             max_output_tokens=8192,
             temperature=0.2,
             google_api_key=os.getenv('GOOGLE_API_KEY')
