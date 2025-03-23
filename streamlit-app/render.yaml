@@ -3,6 +3,8 @@ services:
     name: zoti-document-teacher
     env: docker
     dockerfilePath: ./Dockerfile
+    buildCommand: docker build -t zoti-app .
+    startCommand: docker run -p 8501:8501 zoti-app
     envVars:
       - key: AWS_ACCESS_KEY_ID
         sync: false
@@ -11,6 +13,4 @@ services:
       - key: AWS_REGION
         value: us-east-1
       - key: GOOGLE_API_KEY
-        sync: false
-      - key: TAVILY_API_KEY
         sync: false

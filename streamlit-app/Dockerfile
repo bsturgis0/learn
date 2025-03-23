@@ -18,8 +18,7 @@ COPY requirements-render.txt .
 RUN pip install --no-cache-dir -r requirements-render.txt
 
 # Copy the application code
-COPY src/ ./src/
-COPY .env ./.env
+COPY . .
 
 # Expose port 8501 for Streamlit
 EXPOSE 8501
