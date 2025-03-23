@@ -1,0 +1,14 @@
+streamlit
+langchain
+langgraph
+langchain-google-genai
+langchain-community
+python-dotenv
+boto3
+pandas
+pypdf
+PyMuPDF
+docx2python
+pytesseract
+opencv-python-headless
+pillow

@@ -8,26 +8,21 @@ RUN apt-get update && apt-get install -y \
     curl \
     software-properties-common \
     tesseract-ocr \
+    git \
     && rm -rf /var/lib/apt/lists/*
 
-# Copy only requirements first to leverage Docker cache
+# Copy requirements first
 COPY requirements-render.txt .
 
 # Install Python dependencies
-RUN pip install -r requirements-render.txt
+RUN pip install --no-cache-dir -r requirements-render.txt
 
-# Copy the rest of the application
-COPY . .
+# Copy the application code
+COPY src/ ./src/
+COPY .env ./.env
 
 # Expose port 8501 for Streamlit
 EXPOSE 8501
-
-# Set environment variables
-ENV AWS_ACCESS_KEY_ID=your_aws_access_key
-ENV AWS_SECRET_ACCESS_KEY=your_aws_secret_key
-ENV AWS_REGION=your_aws_region
-ENV GOOGLE_API_KEY=your_google_api_key
-ENV TAVILY_API_KEY=your_tavily_api_key
 
 # Run the application
 CMD ["streamlit", "run", "src/app.py"]
