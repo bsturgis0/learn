@@ -16,6 +16,9 @@ from langchain_google_genai import ChatGoogleGenerativeAI
 from typing import List, Dict, Any, Optional, Union, Annotated
 from langchain_community.tools.tavily_search import TavilySearchResults
 from langchain_core.messages import HumanMessage, AIMessage, SystemMessage, BaseMessage
+from langgraph.checkpoint.memory import MemorySaver
+from langgraph.graph import START, END
+from uuid import uuid4
 
 load_dotenv()
 
@@ -59,6 +62,9 @@ polly_client = boto3.client('polly',
 # Initialize chat history in session state if it doesn't exist
 if 'chat_history' not in st.session_state:
     st.session_state.chat_history = []
+
+# Initialize memory saver
+memory = MemorySaver()
 
 # Define the tools for the agent to use
 @st.cache_resource
@@ -116,21 +122,22 @@ async def call_model(state):
 # Define the workflow
 @st.cache_resource
 def create_workflow():
-    # Create the workflow
+    # Create the workflow with checkpointing
     workflow = (
         StateGraph(state_schema=State)
         .add_node("agent", call_model)
-        .add_edge("__start__", "agent")
+        .add_edge(START, "agent")
         .add_node("tools", tool_node)
         .add_edge("tools", "agent")
         .add_conditional_edges(
             "agent",
             lambda state: "tools" if any(hasattr(msg, 'tool_calls') and msg.tool_calls 
-                                       for msg in state["messages"][-1:]) else "__end__"
+                                       for msg in state["messages"][-1:]) else END
         )
     )
     
-    return workflow.compile()
+    # Compile with memory checkpointing
+    return workflow.compile(checkpointer=memory)
 
 # Initialize the workflow
 app = create_workflow()
@@ -290,9 +297,23 @@ async def synthesize_speech(text: str, voice_id: str) -> None:
     except Exception as e:
         st.error(f"Error synthesizing speech: {str(e)}")
 
+# Initialize thread ID in session state if it doesn't exist
+if 'thread_id' not in st.session_state:
+    st.session_state.thread_id = str(uuid4())
+
+def get_conversation_state():
+    """Retrieve the current conversation state from memory"""
+    if 'thread_id' in st.session_state:
+        config = {"configurable": {"thread_id": st.session_state.thread_id}}
+        return app.get_state(config)
+    return None
+
 # Chat input handler
 async def handle_chat_input(prompt: str):
     try:
+        # Configure thread for memory
+        config = {"configurable": {"thread_id": st.session_state.thread_id}}
+        
         # Prepare messages for the model
         messages = [
             system_message,  # Include system message first
@@ -304,8 +325,11 @@ async def handle_chat_input(prompt: str):
         # Add the new user message
         messages.append(HumanMessage(content=prompt))
         
-        # Invoke the agent through the workflow
-        result = await app.ainvoke({"messages": messages})
+        # Invoke the agent through the workflow with memory
+        result = await app.ainvoke(
+            {"messages": messages},
+            config
+        )
         response = result["messages"][-1].content
         
         # Add assistant response to history
